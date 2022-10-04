@@ -1,5 +1,5 @@
 {
-  "name": "Youtube Video Downloader",
+  "name": "youtube-video-downloader",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
@@ -11,5 +11,9 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^20.1.0"
+  },
+  "dependencies": {
+    "electron-reload": "^2.0.0-alpha.1",
+    "ytdl-core": "^4.11.2"
   }
 }
