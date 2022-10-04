@@ -27,16 +27,19 @@ body {
 .input-container > input {
   flex: 1;
 }
-
-#progress-text {
-  display: block;
-  color: black;
-  margin-left: 6px;
+#progress-container {
+  opacity: 0;
 }
+#progress-container > :first-child {
+  display: flex;
+  justify-content: space-between;
+  padding-right: 6px;
+  padding-left: 6px;
+}
+
 #progress-bar {
   height: 100%;
   width: 100%;
-  opacity: 0;
   background-color: #a4a4a4;
   border-radius: 16px;
   overflow: hidden;
