@@ -2,57 +2,75 @@ const ytdl = require("ytdl-core");
 const fs = require("fs");
 const homeDir = require("os").homedir();
 const desktopDir = `${homeDir}/Desktop`;
+
 const downloadButton = document.getElementById("download-button");
 const progressBar = document.getElementById("progress-bar");
 const progressContainer = document.getElementById("progress-container");
 const percentageElement = document.getElementById("progress-percentage");
 const fileSizeElement = document.getElementById("file-size-progress");
 
-//  const url = document.getElementById("input").value;
-const selectedFormat = document.getElementById("format").value;
+const urlInput = document.getElementById("input");
+const selectedFormatInput = document.getElementById("format");
+
+let isDownloading = false;
 
 const downloadVideo = async () => {
-  const url = "https://www.youtube.com/watch?v=bx3--22D4E4";
-  if (!url || !selectedFormat) return;
-  percentageElement.innerHTML = "0 %";
+  const url = urlInput.value;
+  const selectedFormat = selectedFormatInput.value;
+  if (!url || !selectedFormat || isDownloading) return;
+
+  isDownloading = true;
+  downloadButton.classList.add("disabled");
   progressContainer.style.opacity = "100%";
+  urlInput.value = "";
 
-  try {
-    const { videoDetails } = await ytdl.getBasicInfo(url);
-    const stream = ytdl(url, {
-      filter: (format) => format.container === selectedFormat,
-      quality: "highest",
-    });
-    stream.pipe(
-      fs.createWriteStream(`${desktopDir}/${videoDetails.title}.mp4`)
-    );
-
-    stream.on("progress", (_, downloaded, total) => {
-      showProgress({
-        percentage: Math.round((downloaded * 100) / total),
-        total: humanFileSize(total).size,
-        downloaded: humanFileSize(downloaded).size,
-        sizeUnit: humanFileSize(total).unit,
-      });
-
-      if (downloaded === total) {
-        resetProgressElements();
-        alert("finished");
-        // so i dont keep deleting the video manually
-        fs.unlink(`${desktopDir}/${videoDetails.title}.mp4`, (err) => {
-          if (err) alert(err);
-        });
-      }
-    });
-  } catch (err) {
+  const info = await ytdl.getBasicInfo(url).catch((err) => {
+    isDownloading = false;
     resetProgressElements();
     alert(err);
-  }
+  });
+  if (!info) return;
+  const title = info.videoDetails.title;
+
+  const stream = ytdl(url, {
+    filter: (format) => format.container === selectedFormat,
+    quality: "highest",
+  });
+  stream.pipe(fs.createWriteStream(`${desktopDir}/${title}.${selectedFormat}`));
+
+  stream.on("progress", (_, downloaded, total) => {
+    showProgress({
+      percentage: Math.round((downloaded * 100) / total),
+      total: humanFileSize(total).size,
+      downloaded: humanFileSize(downloaded).size,
+      sizeUnit: humanFileSize(total).unit,
+    });
+
+    if (downloaded === total) {
+      resetProgressElements();
+      isDownloading = false;
+      // so i dont keep deleting the video manually
+      /* fs.unlink(
+        `${desktopDir}/${title}.${selectedFormat}`,
+        (err) => {
+          if (err) alert(err);
+        }
+      );*/
+    }
+  });
+  stream.on("error", (err) => {
+    isDownloading = false;
+    resetProgressElements();
+    alert(err.message);
+  });
 };
 
 const resetProgressElements = () => {
-  percentageElement.innerHTML = "";
+  percentageElement.innerHTML = "0 %";
+  fileSizeElement.innerHTML = "0 / 0";
   progressContainer.style.opacity = "0%";
+  progressBar.firstElementChild.style.width = `0%`;
+  downloadButton.classList.remove("disabled");
 };
 
 const showProgress = ({ percentage = 0, downloaded, total, sizeUnit }) => {

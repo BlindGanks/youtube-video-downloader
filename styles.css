@@ -1,7 +1,7 @@
 body {
   height: 100vh;
   width: 100vw;
-  background-color: aquamarine;
+  background-image: linear-gradient(#485563, #29323c);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,6 +26,34 @@ body {
 }
 .input-container > input {
   flex: 1;
+  padding: 3px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: none;
+}
+.input-container > input:focus {
+  border: 1px solid black;
+}
+#download-button {
+  background-color: #4cff59;
+  border: none;
+  color: black;
+  padding: 3px 30px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+#download-button:hover {
+  background-color: #4caf50;
+  cursor: pointer;
+}
+#download-button.disabled {
+  background-color: #4caf50;
+  opacity: 0.5;
+  cursor: default;
 }
 #progress-container {
   opacity: 0;
@@ -48,5 +76,6 @@ body {
 #progress-bar > div {
   height: 100%;
   width: 0%;
-  background-color: #5cb85c;
+  background-color: #4cff59;
+  transition: width 200ms;
 }
