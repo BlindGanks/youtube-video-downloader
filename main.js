@@ -3,6 +3,9 @@ app.disableHardwareAcceleration();
 const path = require("path");
 const remote = require("@electron/remote/main");
 remote.initialize();
+const ElectronStore = require("electron-store");
+ElectronStore.initRenderer();
+
 require("electron-reload")(__dirname, {
   electron: path.join(__dirname, "node_modules", ".bin", "electron"),
 });

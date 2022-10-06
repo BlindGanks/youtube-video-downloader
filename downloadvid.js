@@ -1,6 +1,8 @@
 const ytdl = require("ytdl-core");
 const fs = require("fs");
 const { dialog } = require("@electron/remote");
+const Store = require("electron-store");
+const store = new Store();
 
 const downloadButton = document.getElementById("download-button");
 const chooseDirButton = document.getElementById("choose-dir-button");
@@ -12,7 +14,7 @@ const chosenDirElement = document.getElementById("chosen-dir");
 const urlInput = document.getElementById("input");
 const selectedFormatInput = document.getElementById("format");
 
-let path = "";
+let path = store.get("chosen-directory") || "";
 let isDownloading = false;
 
 chosenDirElement.innerHTML = path;
@@ -53,13 +55,6 @@ const downloadVideo = async () => {
     if (downloaded === total) {
       resetProgressElements();
       isDownloading = false;
-      // so i dont keep deleting the video manually
-      /* fs.unlink(
-        `${path}/${title}.${selectedFormat}`,
-        (err) => {
-          if (err) alert(err);
-        }
-      );*/
     }
   });
   stream.on("error", (err) => {
@@ -86,6 +81,8 @@ const chooseDirectory = async () => {
   const [chosenDir] = await dialog
     .showOpenDialog({ properties: ["openDirectory"] })
     .then((res) => res.filePaths || []);
+
+  chosenDir && store.set("chosen-directory", chosenDir);
   path = chosenDir || path;
   chosenDirElement.innerHTML = chosenDir || path;
 };
