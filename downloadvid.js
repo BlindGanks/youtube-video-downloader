@@ -1,23 +1,27 @@
 const ytdl = require("ytdl-core");
 const fs = require("fs");
-const homeDir = require("os").homedir();
-const desktopDir = `${homeDir}/Desktop`;
+const { dialog } = require("@electron/remote");
 
 const downloadButton = document.getElementById("download-button");
+const chooseDirButton = document.getElementById("choose-dir-button");
 const progressBar = document.getElementById("progress-bar");
 const progressContainer = document.getElementById("progress-container");
 const percentageElement = document.getElementById("progress-percentage");
 const fileSizeElement = document.getElementById("file-size-progress");
-
+const chosenDirElement = document.getElementById("chosen-dir");
 const urlInput = document.getElementById("input");
 const selectedFormatInput = document.getElementById("format");
 
+let path = "";
 let isDownloading = false;
+
+chosenDirElement.innerHTML = path;
 
 const downloadVideo = async () => {
   const url = urlInput.value;
   const selectedFormat = selectedFormatInput.value;
-  if (!url || !selectedFormat || isDownloading) return;
+
+  if (!url || !selectedFormat || !path || isDownloading) return;
 
   isDownloading = true;
   downloadButton.classList.add("disabled");
@@ -36,7 +40,7 @@ const downloadVideo = async () => {
     filter: (format) => format.container === selectedFormat,
     quality: "highest",
   });
-  stream.pipe(fs.createWriteStream(`${desktopDir}/${title}.${selectedFormat}`));
+  stream.pipe(fs.createWriteStream(`${path}/${title}.${selectedFormat}`));
 
   stream.on("progress", (_, downloaded, total) => {
     showProgress({
@@ -51,7 +55,7 @@ const downloadVideo = async () => {
       isDownloading = false;
       // so i dont keep deleting the video manually
       /* fs.unlink(
-        `${desktopDir}/${title}.${selectedFormat}`,
+        `${path}/${title}.${selectedFormat}`,
         (err) => {
           if (err) alert(err);
         }
@@ -78,7 +82,13 @@ const showProgress = ({ percentage = 0, downloaded, total, sizeUnit }) => {
   percentageElement.innerHTML = `${percentage} %`;
   fileSizeElement.innerHTML = `${downloaded} / ${total} ${sizeUnit}`;
 };
-
+const chooseDirectory = async () => {
+  const [chosenDir] = await dialog
+    .showOpenDialog({ properties: ["openDirectory"] })
+    .then((res) => res.filePaths || []);
+  path = chosenDir || path;
+  chosenDirElement.innerHTML = chosenDir || path;
+};
 const humanFileSize = (bytes, si = true, dp = 1) => {
   const thresh = si ? 1000 : 1024;
 
@@ -106,3 +116,4 @@ const humanFileSize = (bytes, si = true, dp = 1) => {
 };
 
 downloadButton.addEventListener("click", downloadVideo);
+chooseDirButton.addEventListener("click", chooseDirectory);
